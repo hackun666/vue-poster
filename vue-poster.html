@@ -1,0 +1,131 @@
+<html>
+<head>
+<title>长按图片保存分享</title>
+<meta name="viewport" content="640, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/vue/2.5.17-beta.0/vue.js"></script>
+</head>
+<body>
+<style>
+*{
+	margin:0;
+	padding:0;
+}
+body,
+html {
+	width: 100%;
+	height: 100%;
+	padding-bottom:30px;
+}
+
+#imgBox {
+	width: 100%;
+	height: 100%;
+}
+#imgBox p {
+	font-size:12px;
+	line-height:30px;
+	color:#aaa;
+	background-color:#fff;
+	text-align:center;
+	margin-bottom:10px;
+}
+img {
+	width: 80%;
+	display: block;
+	margin:0 auto;
+	box-shadow: 0 0 30px rgba(0,0,0,.2);
+}
+#btn2{display:none;margin-bottom:10px;}
+</style>
+<div id="imgBox">
+	<p>长按图片保存到系统相册中然后分享</p>
+	<img :src='imgSrc' v-if="imgSrc" />
+</div>
+<script>
+// js主要结构
+new Vue({
+    el:'#imgBox',
+    data:{
+        userName: '千里草',//用户称呢
+        imgSrc: '',//合成最终图片
+        qrCode: 'qr.png'//二维码
+    },
+	mounted(){
+		this.drawCanvasBgImg();
+	},
+    methods: {  
+        // 获取页面dpr和宽度
+
+        getWindowInfo() {
+            var windowInfo = {};
+            windowInfo.dpr = window.devicePixelRatio;
+            if (window.innerWidth) {
+                windowInfo.width = window.innerWidth;
+            }
+            else {
+                windowInfo.width = document.body.clientWidth;
+            }
+            return windowInfo;
+        },
+        //拿到数据后开始画背景大图 想法很简单就是把图片画到canvas中然后在画布上再画头像文字让后转成img
+		drawCanvasBgImg () {	
+			var vm = this;
+			var canvas = document.createElement("canvas");
+			var ctx = canvas.getContext("2d");
+			var clientWidth = this.getWindowInfo().width;  //获取屏幕宽度用于canvas宽度自适应移动端屏幕
+			var dpr = this.getWindowInfo().dpr;
+			
+			ctx.globalCompositeOperation = "source-atop";//** 坑锯齿感觉没什么用不知道是不是用错地方了 **
+			canvas.width = 640;//dpr * clientWidth;  //由于手机屏幕时retina屏，都会多倍渲染，用dpr来动态设置画布宽高，避免图片模糊			
+			canvas.height = 1138;//dpr * clientWidth * 609 / 375;//去掉微信头部的状态栏应该是603 没搞懂603还是不能让图片满屏直接多加到了609
+			var img = new Image();
+			img.crossOrigin = '';//死坑的图片跨域 （img.crossOrigin = "Anonymous"这种写法还是不能显示base64格式图片）
+			img.src = "bg.jpg";//背景图
+			img.onload = function () {
+				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				vm.drawCanvasqrImg(canvas, ctx, dpr);
+			}
+		},
+		// 绘制二维码
+		drawCanvasqrImg: function (canvas, ctx, dpr) {			
+			var vm = this;
+			var start = 182;
+			var imgX = start;//图片X开始坐标
+			var imgY = 495;//图片Y开始坐标
+			var imgWidth = 275;
+			var img = new Image();
+			img.crossOrigin = '';
+			img.src = this.qrCode;
+			img.onload = function () {
+				ctx.drawImage(img, imgX, imgY, imgWidth, imgWidth);
+				ctx.restore(); // 还原状态
+				vm.canvasFillPin(canvas, ctx, dpr);
+			}
+		},
+		canvasFillPin (canvas, ctx, dpr) {
+			var vm = this;
+			var fontSizeThis = 30 + 'px' + ' Arial';
+			var userNameY = 830;//用户名Y轴坐标
+			ctx.font = fontSizeThis;
+			// 需要用户名是写入用户名
+			if (this.userName) {
+				ctx.fillStyle = "white"; 
+				ctx.textAlign = 'left';
+				var w = ctx.measureText(this.userName).width;
+				ctx.fillText(this.userName,(canvas.width-w)/2, userNameY);
+				
+				ctx.restore(); // 还原状态
+				this.convertCanvasToImage(canvas);
+			}		
+		},
+		
+        convertCanvasToImage (canvas) {
+            this.imgSrc = canvas.toDataURL("image/jpeg");//png有毒在安卓机下识别二维码无法跳转
+            this.$Spin.hide();
+        }
+    }
+})
+</script>
+</body>
+</html>
