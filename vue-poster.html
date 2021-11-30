@@ -47,9 +47,9 @@ img {
 new Vue({
     el:'#imgBox',
     data:{
-        userName: '千里草',//用户称呢
+        userName: 'Hackun@掘金',//用户称呢
         imgSrc: '',//合成最终图片
-        qrCode: 'qr.png'//二维码
+        qrCode: 'https://lf3-cdn-tos.bytescm.com/obj/static/xitu_juejin_web/img/app_download_QR.40b04a4.png'//二维码
     },
 	mounted(){
 		this.drawCanvasBgImg();
@@ -81,7 +81,7 @@ new Vue({
 			canvas.height = 1138;//dpr * clientWidth * 609 / 375;//去掉微信头部的状态栏应该是603 没搞懂603还是不能让图片满屏直接多加到了609
 			var img = new Image();
 			img.crossOrigin = '';//死坑的图片跨域 （img.crossOrigin = "Anonymous"这种写法还是不能显示base64格式图片）
-			img.src = "bg.jpg";//背景图
+			img.src = "https://source.unsplash.com/random";//背景图
 			img.onload = function () {
 				ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 				vm.drawCanvasqrImg(canvas, ctx, dpr);
